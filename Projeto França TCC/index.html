@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css?v=2">
 </head>
 <body>
     <div class="container">
@@ -26,6 +26,7 @@
                 <li><a href="index.html" class="ativo">Início</a></li>
                 <li><a href="#sobre">Sobre</a></li>
                 <li><a href="#historia">História</a></li>
+                <li><a href="#ferramentas">Ferramentas</a></li>
                 <li><a href="project.html">Cultura</a></li>
                 <li><a href="contact.html">Pontos Turísticos</a></li>
             </ul>
@@ -150,8 +151,40 @@
                 </div>
             </section>
 
+            <!-- Seção Ferramentas de Viagem (Clima + Conversor) -->
+            <section id="ferramentas" class="section">
+                <h2 class="section-title">Ferramentas de Viagem</h2>
+                <div class="section-content">
+                    <p>
+                        Confira o clima em tempo real nas principais cidades francesas e converta valores de euros para reais para planejar sua viagem.
+                    </p>
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <h3>Clima Agora</h3>
+                            <select id="cidade-select">
+                                <option value="paris">Paris</option>
+                                <option value="nice">Nice</option>
+                                <option value="lyon">Lyon</option>
+                                <option value="estrasburgo">Estrasburgo</option>
+                            </select>
+                            <div id="clima-resultado" class="clima-resultado">
+                                <p class="loading-text">Carregando clima...</p>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <h3>Conversor Euro → Real</h3>
+                            <div class="conversor-input-wrapper">
+                                <input type="number" id="valor-euro" placeholder="Valor em €" min="0" step="0.01">
+                                <button id="converter-btn">Converter</button>
+                            </div>
+                            <div id="conversor-resultado" class="conversor-resultado"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Seção Cultura (resumo com link para página completa) -->
-            <section id="cultura" class="section">
+            <section id="cultura" class="section section-alt">
                 <h2 class="section-title">Cultura Francesa</h2>
                 <div class="section-content">
                     <p>
@@ -252,5 +285,7 @@
             </div>
         </footer>
     </div>
+
+    <script src="script.js?v=2"></script>
 </body>
 </html>

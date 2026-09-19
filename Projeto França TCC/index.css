@@ -91,6 +91,7 @@ body {
     display: flex;
     list-style: none;
     gap: 30px;
+    flex-wrap: wrap;
 }
 
 .nav-menu a {
@@ -546,6 +547,120 @@ body {
 }
 
 /* ============================================
+   Ferramentas de Viagem (Clima + Conversor)
+   ============================================ */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.tool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+}
+
+.tool-card h3 {
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+    color: var(--text);
+}
+
+.tool-card select,
+.tool-card input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.conversor-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.conversor-input-wrapper input {
+    flex: 1;
+}
+
+.tool-card button {
+    padding: 10px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.tool-card button:hover {
+    background: var(--france-blue);
+}
+
+.clima-resultado,
+.conversor-resultado {
+    margin-top: 18px;
+    min-height: 40px;
+}
+
+.clima-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.clima-icone {
+    font-size: 2.5rem;
+}
+
+.clima-temp {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.clima-desc {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.clima-vento {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.conversor-valor {
+    font-size: 1.2rem;
+    color: var(--text);
+}
+
+.conversor-data {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.loading-text,
+.erro-text {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.erro-text {
+    color: var(--france-red);
+}
+
+/* ============================================
    Páginas internas - Navegação entre páginas
    ============================================ */
 .page-header {
@@ -752,6 +867,10 @@ body {
     .timeline {
         padding-left: 20px;
     }
+
+    .conversor-input-wrapper {
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 480px) {
@@ -769,7 +888,8 @@ body {
     
     .culture-grid,
     .turismo-cards,
-    .destaques-grid {
+    .destaques-grid,
+    .tools-grid {
         grid-template-columns: 1fr;
     }
     
