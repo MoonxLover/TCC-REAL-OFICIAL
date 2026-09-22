@@ -83,7 +83,8 @@ async function converterMoeda() {
     resultadoEl.innerHTML = `<p class="loading-text">Convertendo...</p>`;
 
     try {
-        const url = `https://api.frankfurter.app/latest?amount=${valor}&from=EUR&to=BRL`;
+        // Domínio atualizado: api.frankfurter.app migrou para api.frankfurter.dev (endpoint v2)
+        const url = `https://api.frankfurter.dev/v2/latest?amount=${valor}&from=EUR&to=BRL`;
         const response = await fetch(url);
 
         if (!response.ok) throw new Error("Falha na requisição da conversão");
