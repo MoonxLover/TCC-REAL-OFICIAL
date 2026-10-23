@@ -8,7 +8,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css?v=3">
+    <!-- Trava de acesso: sem login, redireciona para a tela de entrada -->
+    <script>
+        (function () {
+            var sessao = null;
+            try { sessao = JSON.parse(localStorage.getItem('vlf-session')); } catch (e) {}
+            if (!sessao || !sessao.email) { location.replace('login.html'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="index.css?v=5">
     <!-- Aplica o tema salvo (ou a preferência do sistema) antes da página renderizar, evitando "flash" -->
     <script>
         (function () {
@@ -38,6 +46,7 @@
                     <li><a href="#ferramentas">Ferramentas</a></li>
                     <li><a href="project.html">Cultura</a></li>
                     <li><a href="contact.html">Pontos Turísticos</a></li>
+                    <li id="nav-auth"><a href="login.html">Entrar</a></li>
                 </ul>
                 <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Alternar modo escuro">
                     <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -319,6 +328,6 @@
         </footer>
     </div>
 
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

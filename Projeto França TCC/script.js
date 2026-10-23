@@ -231,3 +231,253 @@ document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     initHeroCarousel();
 });
+
+// ============================================
+// Login e cadastro (simulado no navegador)
+// ATENÇÃO: os dados ficam no localStorage deste navegador. Serve para
+// demonstração/TCC, mas NÃO é seguro para dados reais. Para um login de
+// verdade, use um serviço como Firebase Auth ou Supabase Auth.
+// ============================================
+const AUTH_USERS_KEY = "vlf-users";
+const AUTH_SESSION_KEY = "vlf-session";
+
+function lerJSON(chave, padrao) {
+    try {
+        const bruto = localStorage.getItem(chave);
+        return bruto ? JSON.parse(bruto) : padrao;
+    } catch (e) {
+        return padrao;
+    }
+}
+
+// Grava no localStorage sem quebrar caso o navegador bloqueie o armazenamento
+function gravar(chave, valor) {
+    try {
+        localStorage.setItem(chave, valor);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+const MSG_SEM_STORAGE = "Seu navegador está bloqueando o armazenamento local (modo anônimo ou cookies desativados), então não dá para salvar a conta.";
+
+// Executa uma ação e devolve uma mensagem amigável se algo inesperado acontecer
+async function tentar(acao) {
+    try {
+        return await acao();
+    } catch (e) {
+        console.error(e);
+        return { ok: false, msg: "Algo deu errado ao processar. Tente novamente." };
+    }
+}
+
+function getUsuarios() {
+    return lerJSON(AUTH_USERS_KEY, []);
+}
+
+function getSessao() {
+    return lerJSON(AUTH_SESSION_KEY, null);
+}
+
+// Gera um hash da senha (SHA-256) para não guardá-la em texto puro
+async function hashSenha(senha) {
+    if (window.crypto && window.crypto.subtle) {
+        const dados = new TextEncoder().encode(senha);
+        const buffer = await crypto.subtle.digest("SHA-256", dados);
+        return Array.from(new Uint8Array(buffer))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("");
+    }
+    // Alternativa simples caso o navegador não ofereça crypto.subtle
+    let h = 5381;
+    for (let i = 0; i < senha.length; i++) {
+        h = ((h << 5) + h + senha.charCodeAt(i)) >>> 0;
+    }
+    return "d" + h.toString(16);
+}
+
+async function cadastrarUsuario(nome, email, senha) {
+    const emailNorm = email.trim().toLowerCase();
+    const usuarios = getUsuarios();
+
+    if (usuarios.some((u) => u.email === emailNorm)) {
+        return { ok: false, msg: "Já existe uma conta com esse e-mail." };
+    }
+
+    const hash = await hashSenha(senha);
+    usuarios.push({ nome: nome.trim(), email: emailNorm, hash });
+    const salvouUsuarios = gravar(AUTH_USERS_KEY, JSON.stringify(usuarios));
+    const salvouSessao = gravar(AUTH_SESSION_KEY, JSON.stringify({ nome: nome.trim(), email: emailNorm }));
+    if (!salvouUsuarios || !salvouSessao) {
+        return { ok: false, msg: MSG_SEM_STORAGE };
+    }
+    return { ok: true };
+}
+
+async function entrarUsuario(email, senha) {
+    const emailNorm = email.trim().toLowerCase();
+    const hash = await hashSenha(senha);
+    const usuario = getUsuarios().find((u) => u.email === emailNorm);
+
+    if (!usuario) {
+        return {
+            ok: false,
+            msg: "Não encontramos uma conta com esse e-mail neste navegador. Use a aba “Criar conta” primeiro."
+        };
+    }
+    if (usuario.hash !== hash) {
+        return { ok: false, msg: "Senha incorreta." };
+    }
+
+    if (!gravar(AUTH_SESSION_KEY, JSON.stringify({ nome: usuario.nome, email: usuario.email }))) {
+        return { ok: false, msg: MSG_SEM_STORAGE };
+    }
+    return { ok: true };
+}
+
+function sairDaConta() {
+    localStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+// Troca "Entrar" por "Sair (Nome)" no menu quando houver sessão ativa
+function atualizarNavAuth() {
+    const item = document.getElementById("nav-auth");
+    if (!item) return;
+
+    const sessao = getSessao();
+    const estavaAtivo = item.querySelector("a.ativo") !== null;
+    item.textContent = "";
+
+    const link = document.createElement("a");
+    if (sessao) {
+        link.href = "#";
+        link.textContent = "Sair (" + sessao.nome.split(" ")[0] + ")";
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            sairDaConta();
+            window.location.reload();
+        });
+    } else {
+        link.href = "login.html";
+        link.textContent = "Entrar";
+        if (estavaAtivo) link.className = "ativo";
+    }
+    item.appendChild(link);
+}
+
+function mostrarMensagem(el, texto, sucesso) {
+    if (!el) return;
+    el.textContent = texto;
+    el.classList.toggle("ok", !!sucesso);
+}
+
+function initLogin() {
+    const formLogin = document.getElementById("login-form");
+    const formCadastro = document.getElementById("cadastro-form");
+    if (!formLogin || !formCadastro) return;
+
+    const abaEntrar = document.getElementById("tab-entrar");
+    const abaCadastro = document.getElementById("tab-cadastro");
+    const blocoForms = document.getElementById("login-forms");
+    const blocoLogado = document.getElementById("login-logged");
+    const msgLogin = document.getElementById("login-msg");
+    const msgCadastro = document.getElementById("cadastro-msg");
+
+    function mostrarAba(aba) {
+        const entrar = aba === "entrar";
+        formLogin.hidden = !entrar;
+        formCadastro.hidden = entrar;
+        abaEntrar.classList.toggle("active", entrar);
+        abaCadastro.classList.toggle("active", !entrar);
+        abaEntrar.setAttribute("aria-selected", String(entrar));
+        abaCadastro.setAttribute("aria-selected", String(!entrar));
+        mostrarMensagem(msgLogin, "");
+        mostrarMensagem(msgCadastro, "");
+    }
+
+    abaEntrar.addEventListener("click", () => mostrarAba("entrar"));
+    abaCadastro.addEventListener("click", () => mostrarAba("cadastro"));
+
+    // Botões de mostrar/ocultar senha
+    document.querySelectorAll(".senha-toggle").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const campo = document.getElementById(btn.dataset.alvo);
+            if (!campo) return;
+            const mostrando = campo.type === "text";
+            campo.type = mostrando ? "password" : "text";
+            btn.setAttribute("aria-label", mostrando ? "Mostrar senha" : "Ocultar senha");
+        });
+    });
+
+    // Se já estiver logado, mostra o painel de boas-vindas
+    const sessao = getSessao();
+    if (sessao) {
+        blocoForms.hidden = true;
+        blocoLogado.hidden = false;
+        document.getElementById("login-logged-nome").textContent = sessao.nome;
+        document.getElementById("login-sair").addEventListener("click", () => {
+            sairDaConta();
+            window.location.reload();
+        });
+    }
+
+    formLogin.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("login-email").value;
+        const senha = document.getElementById("login-senha").value;
+
+        if (!email.includes("@") || !senha) {
+            mostrarMensagem(msgLogin, "Preencha o e-mail e a senha.");
+            return;
+        }
+
+        const resultado = await tentar(() => entrarUsuario(email, senha));
+        if (!resultado.ok) {
+            mostrarMensagem(msgLogin, resultado.msg);
+            return;
+        }
+        mostrarMensagem(msgLogin, "Login realizado! Redirecionando...", true);
+        atualizarNavAuth();
+        setTimeout(() => { window.location.href = "index.html"; }, 800);
+    });
+
+    formCadastro.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById("cad-nome").value;
+        const email = document.getElementById("cad-email").value;
+        const senha = document.getElementById("cad-senha").value;
+        const senha2 = document.getElementById("cad-senha2").value;
+
+        if (nome.trim().length < 2) {
+            mostrarMensagem(msgCadastro, "Digite seu nome.");
+            return;
+        }
+        if (!email.includes("@") || !email.includes(".")) {
+            mostrarMensagem(msgCadastro, "Digite um e-mail válido.");
+            return;
+        }
+        if (senha.length < 6) {
+            mostrarMensagem(msgCadastro, "A senha precisa ter pelo menos 6 caracteres.");
+            return;
+        }
+        if (senha !== senha2) {
+            mostrarMensagem(msgCadastro, "As senhas não são iguais.");
+            return;
+        }
+
+        const resultado = await tentar(() => cadastrarUsuario(nome, email, senha));
+        if (!resultado.ok) {
+            mostrarMensagem(msgCadastro, resultado.msg);
+            return;
+        }
+        mostrarMensagem(msgCadastro, "Conta criada! Redirecionando...", true);
+        atualizarNavAuth();
+        setTimeout(() => { window.location.href = "index.html"; }, 800);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    atualizarNavAuth();
+    initLogin();
+});
